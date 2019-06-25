@@ -33,13 +33,28 @@ class Rouge155TokenizerTests(unittest.TestCase):
                           "Stopword removal failed")
 
     def test_sentence_splitter(self):
-        spl_summary = "This is a sentence. \nFollowed by another sentence. \nAnd yet another."
+        spl_summary = "This is a sentence.\nFollowed by another sentence.\nAnd yet another."
         split_sentences = self.tokenizer._get_sentence_splitter("SPL")
         self.assertEqual(split_sentences(spl_summary), spl_summary.split("\n"),
                          "SPL sentence splitting failed")
+
         split_sentences = self.tokenizer._get_sentence_splitter(None)
         self.assertEqual(split_sentences(spl_summary), [spl_summary],
                          "None sentence splitting failed")
+
+        see_summary = '<html>\n' \
+                      '<head>\n' \
+                      '<title>SL.P.10.R.A.SL062003-24</title>\n' \
+                      '</head>\n' \
+                      '<body bgcolor="white">\n' \
+                      '<a name="1">[1]</a> <a href="#1" id=1>This is a sentence.</a>\n' \
+                      '<a name="2">[2]</a> <a href="#2" id=2>Followed by another sentence.</a>\n' \
+                      '<a name="3">[3]</a> <a href="#3" id=3>And yet another.</a>\n' \
+                      '</body>\n</html>\n'
+        split_sentences = self.tokenizer._get_sentence_splitter("SEE")
+        self.assertEqual(split_sentences(see_summary), spl_summary.split("\n"),
+                         "SEE sentence splitting failed")
+
 
     def test_byte_limit(self):
         text = "A testcase is created by subclassing unittest.TestCase. The three individual tests are defined with " \
