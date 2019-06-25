@@ -5,6 +5,11 @@ Pure python implementation of ROUGE, designed for:
  - Incremental scoring for use in e.g. reinforcement learning rewards, 
    or beam search.
 
+## In development:  
+- ROUGE-L;
+- Ordered ROUGE-N (information ordering aware version of ROUGE-N);
+- Test on more data to confirm ROUGE 1.5.5 reproducibility;
+
 ## Examples:
 ```python
 from rouge import Rouge
@@ -73,56 +78,57 @@ reference_texts = ["The cat was under the bed.",
                    ]
 candidate_text_gen = "The kitty was sneakily hiding under the bed.".split()
 rouge.reset_incremental(reference_texts)
-scores = []
 for word in candidate_text_gen:
-    print(word)
+    print(f"Word: {word}")
     pp.pprint(rouge.n_score_incremental(word))
 rouge.reset_incremental(reference_texts)
 ```
 
 ```python
-The
+Word: The
 {'ROUGE-1': {'R': 0.13333333333333333},
  'ROUGE-2': {'R': 0.0},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-kitty
+Word: kitty
 {'ROUGE-1': {'R': 0.06666666666666667},
  'ROUGE-2': {'R': 0.0},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-was
+Word: was
 {'ROUGE-1': {'R': 0.13333333333333333},
  'ROUGE-2': {'R': 0.07692307692307693},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-sneakily
+Word: sneakily
 {'ROUGE-1': {'R': 0.0},
  'ROUGE-2': {'R': 0.0},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-hiding
+Word: hiding
 {'ROUGE-1': {'R': 0.06666666666666667},
  'ROUGE-2': {'R': 0.0},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-under
+Word: under
 {'ROUGE-1': {'R': 0.13333333333333333},
  'ROUGE-2': {'R': 0.07692307692307693},
  'ROUGE-3': {'R': 0.0},
  'ROUGE-4': {'R': 0.0}}
-the
+Word: the
 {'ROUGE-1': {'R': 0.13333333333333333},
  'ROUGE-2': {'R': 0.15384615384615385},
  'ROUGE-3': {'R': 0.09090909090909091},
  'ROUGE-4': {'R': 0.0}}
-bed.
+Word: bed.
 {'ROUGE-1': {'R': 0.06666666666666667},
  'ROUGE-2': {'R': 0.07692307692307693},
  'ROUGE-3': {'R': 0.09090909090909091},
  'ROUGE-4': {'R': 0.0}}
+Word: 
 {'ROUGE-1': {'R': None},
  'ROUGE-2': {'R': None},
  'ROUGE-3': {'R': None},
  'ROUGE-4': {'R': None}}
+
 ```
