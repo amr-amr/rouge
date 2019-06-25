@@ -2,7 +2,7 @@ from typing import List, Callable
 import nltk
 import re
 from pathlib import Path
-
+import re
 
 class BaseTokenizer(object):
     def tokenize_text(self, text: str) -> List[List[str]]:
@@ -27,7 +27,9 @@ class Rouge155Tokenizer(BaseTokenizer):
         self.remove_stopwords = self._get_stopword_remover(stopwords_path, sw_removal)
         self.split_sentences = self._get_sentence_splitter(sentence_split)
 
-    def _get_stemmer(self, wn_exceptions_path: Path, stem: bool) -> Callable[[str], str]:
+
+    @staticmethod
+    def _get_stemmer(wn_exceptions_path: Path, stem: bool) -> Callable[[str], str]:
         """Create stemming function used in ROUGE 1.5.5 (method: MorphStem)
 
         :param wn_exceptions_path: Path to `WordNet-2.0-Exceptions` directory in ROUGE 1.5.5 data directory
@@ -51,7 +53,8 @@ class Rouge155Tokenizer(BaseTokenizer):
 
             return lambda x: porter_stemmer.stem(exceptions_dict[x]) if x in exceptions_dict else porter_stemmer.stem(x)
 
-    def _get_stopword_remover(self, stopwords_path: Path, sw_removal: bool) -> Callable[[str], str]:
+    @staticmethod
+    def _get_stopword_remover(stopwords_path: Path, sw_removal: bool) -> Callable[[str], str]:
         """Create stopword remover function used in ROUGE 1.5.5 (method: createNGram)
 
         :param stopwords_path: Path to `smart_common_words.txt` file in ROUGE 1.5.5 data directory
@@ -67,13 +70,14 @@ class Rouge155Tokenizer(BaseTokenizer):
             stopwords_dict = {stopword: None for stopword in stopwords}
             return lambda x: stopwords_dict[x] if x in stopwords_dict else x
 
-    def _get_sentence_splitter(self, sentence_split: str) -> Callable[[str], List[str]]:
+    @staticmethod
+    def _get_sentence_splitter(sentence_split: str) -> Callable[[str], List[str]]:
         """Create sentence splitter function used in ROUGE 1.5.5 (method: readText)
 
         :param sentence_split: type of sentence splitting (see ROUGE 1.5.5 for more information)
         :return: Sentence splitter function
         """
-        valid_methods = [None, 'SPL']
+        valid_methods = [None, 'SPL', 'SEE']
         assert(sentence_split in valid_methods), f"Invalid `sentence_split`, must be in {valid_methods}"
 
         if not sentence_split:
@@ -81,7 +85,9 @@ class Rouge155Tokenizer(BaseTokenizer):
         elif sentence_split == "SPL":
             return lambda x: x.split("\n")
         elif sentence_split == "SEE":
-            raise NotImplementedError # TODO: implement SEE sentence splitting, and test
+            pattern = "<a size=\"[0-9]+\" name=\"[0-9]+\">\[([0-9]+)\]<\/a>\s+<a href=\"\#[0-9]+\" id=[0-9]+>([^<]+)"\
+                      "|<a name=\"[0-9]+\">\[([0-9]+)\]<\/a>\s+<a href=\"\#[0-9]+\" id=[0-9]+>([^<]+)"
+            return lambda x: [m[-1] for m in re.findall(pattern, x)]
         elif sentence_split == "ISI":
             raise NotImplementedError # TODO: implement ISI sentence splitting, and test
         elif sentence_split == "SIMPLE":
@@ -110,6 +116,8 @@ class Rouge155Tokenizer(BaseTokenizer):
         word = word.lower()
         if self.remove_stopwords:
             word = self.remove_stopwords(word)
+        if word and not re.match("^[a-z0-9\$]", word): # condition in original createNGram method
+            word = None
         if self.stem and word:
             word = self.stem(word)
         return word
