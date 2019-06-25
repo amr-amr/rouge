@@ -18,7 +18,7 @@ class Rouge(object):
         self.scoring = scoring
         self.alpha = alpha
 
-        self.incremental = None
+        self.incremental = {}
 
     @classmethod
     def from_rouge155_args(cls, args: Dict = None):
@@ -111,17 +111,21 @@ class Rouge(object):
         """
         results = {}
         new_tokens = sum(self._tokenize(new_text), [])
-        for n in range(1,self.N+1):
-            matches_count = 0
-            new_ngrams =  self._ngram_tokenize(self.incremental['prev_tokens'][-n:] + new_tokens, n)
-            for ref_counter in self.incremental['ref_counters'][n]:
-                for ngram in new_ngrams:
-                    if ngram in ref_counter:
-                        matches_count += 1
+        if new_tokens:
+            self.incremental['prev_tokens'] += new_tokens
+            for n in range(1,self.N+1):
+                matches_count = 0
+                new_ngrams =  self._ngram_tokenize([self.incremental['prev_tokens'][-n:]], n)
+                for ref_counter in self.incremental['ref_counters'][n]:
+                    for ngram in new_ngrams:
+                        if ngram in ref_counter:
+                            matches_count += 1
 
-            recall = matches_count/self.incremental['refs_count'][n]
+                recall = matches_count/self.incremental['refs_count'][n]
 
-            results[f"ROUGE-{n}"] = {"R": recall}
+                results[f"ROUGE-{n}"] = {"R": recall}
+        else:
+            results = {f"ROUGE-{n}": {"R": None} for n in range(1, self.N+1)}
         return results
 
     def reset_incremental(self, ref_texts: List[str]):
