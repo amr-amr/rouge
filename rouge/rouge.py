@@ -2,7 +2,7 @@ from typing import Dict, List
 RougeScores = Dict[str, Dict[str, float]] # {'ROUGE-1': {'R': 0., 'P': 0., 'F': 0.}}
 from rouge.utils.tokenize import BaseTokenizer, Rouge155Tokenizer
 from collections import Counter
-
+from itertools import chain
 
 # TODO: bootstrap resampling
 # TODO: ROUGE-L
@@ -110,7 +110,7 @@ class Rouge(object):
         :return:
         """
         results = {}
-        new_tokens = sum(self._tokenize(new_text), [])
+        new_tokens = list(chain.from_iterable(self._tokenize(new_text)))
         if new_tokens:
             self.incremental['prev_tokens'] += new_tokens
             for n in range(1,self.N+1):
@@ -155,7 +155,7 @@ class Rouge(object):
         :param n: Ngram size
         :return ngrams:  List of ngrams
         """
-        tokenized_text = sum(tokenized_sentences, [])
+        tokenized_text = list(chain.from_iterable(tokenized_sentences))
         return [" ".join(tokenized_text[i:i+n]) for i in range(len(tokenized_text)-n+1)]
 
     def _tokenize(self, text: str) -> List[List[str]]:
